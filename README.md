@@ -17,3 +17,9 @@ Example project to demonstrate AWS X-Ray usage with API Gateway and Lambda using
 make build
 ```
 
+### Deploying the project to AWS
+
+```
+make deploy
+```
+
