@@ -1,0 +1,55 @@
+service: serverless-xray-example
+
+provider:
+  name: aws
+  runtime: go1.x
+  memorySize: 512
+  timeout: 5
+  region: eu-central-1
+  iamRoleStatements:
+    -  Effect: Allow
+       Action:
+         - dynamodb:PutItem
+       Resource:
+         Fn::GetAtt: Table.Arn
+  tracing:
+    apiGateway: true
+    lambda: true
+
+package:
+  individually: true
+  exclude:
+    - ./**
+
+functions:
+  my-handler:
+    handler: bin/my-handler
+    package:
+      include:
+      - bin/my-handler
+    events:
+    - http:
+        path: /my-handler
+        method: get
+    environment:
+      DYNAMODB_TABLE_NAME:
+        Ref: Table
+
+resources:
+  Resources:
+    Table:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: "id"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "id"
+            KeyType: "HASH"
+        SSESpecification:
+          SSEEnabled: true
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
